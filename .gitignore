@@ -1,0 +1,27 @@
+# Java build output
+out/
+*.class
+*.jar
+*.war
+*.ear
+
+# Logs
+*.log
+server-out.log
+server-err.log
+
+# Environment files
+.env
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
