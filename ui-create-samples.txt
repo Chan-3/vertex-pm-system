@@ -1,0 +1,86 @@
+Vertex PM System UI Create Samples
+
+Project samples
+1.
+name=Battery Pack Traceability Rollout
+managerName=Harini Subramaniam
+description=Roll out battery pack genealogy tracking across inbound, assembly, and end-of-line checks.
+objectives=Improve pack traceability, strengthen recall readiness, and align digital quality records.
+startDate=2026-05-05
+endDate=2026-10-30
+budgetTotal=6800000
+
+2.
+name=Paint Shop Energy Optimization
+managerName=Raghav Menon
+description=Reduce energy usage across paint bake ovens and compressed air systems.
+objectives=Lower plant utility cost, improve sustainability score, and standardize oven loading practices.
+startDate=2026-06-02
+endDate=2026-11-21
+budgetTotal=5400000
+
+Task samples
+1.
+projectId=PRJ-EV-LINE
+name=Validate battery trace label readability
+description=Confirm barcode readability after pack sealing and cooling stages.
+assignedTo=Sandeep Kulkarni
+startDate=2026-07-05
+dueDate=2026-07-14
+priority=HIGH
+status=PLANNED
+
+2.
+projectId=PRJ-ADAS-INT
+name=Close lane-centering regression review
+description=Review open regression issues before the next prototype fleet release.
+assignedTo=Ananya Das
+startDate=2026-08-04
+dueDate=2026-08-18
+priority=MEDIUM
+status=PLANNED
+
+Resource samples
+1.
+projectId=PRJ-ENG-OPT
+name=Deepak Balan
+role=Controls Engineer
+skillSet=PLC diagnostics, line tuning, downtime reduction
+availability=true
+
+2.
+projectId=PRJ-EV-LINE
+name=Shreya Nambiar
+role=Launch Planner
+skillSet=Ramp-up planning, launch dashboards, issue closure
+availability=true
+
+Milestone samples
+1.
+projectId=PRJ-EV-LINE
+name=Traceability Gate Sign-off
+description=Approve battery pack traceability checks for pilot build.
+targetDate=2026-08-08
+completionStatus=false
+
+2.
+projectId=PRJ-ADAS-INT
+name=Cybersecurity Review Closure
+description=Close all high-priority cybersecurity review actions before release.
+targetDate=2026-09-12
+completionStatus=false
+
+Expense samples
+1.
+projectId=PRJ-EV-LINE
+description=Vision inspection camera upgrade
+category=Equipment
+amount=485000
+expenseDate=2026-07-22
+
+2.
+projectId=PRJ-ENG-OPT
+description=Weekend line balancing workshop
+category=Labor
+amount=165000
+expenseDate=2026-06-26

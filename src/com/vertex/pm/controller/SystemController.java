@@ -2,6 +2,7 @@ package com.vertex.pm.controller;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import com.vertex.pm.exception.ExceptionType;
 import com.vertex.pm.exception.ProjectManagementException;
 import com.vertex.pm.model.Expense;
 import com.vertex.pm.model.Milestone;
@@ -9,6 +10,8 @@ import com.vertex.pm.model.Resource;
 import com.vertex.pm.model.Task;
 import com.vertex.pm.model.TaskStatus;
 import com.vertex.pm.service.ProjectService;
+import com.vertex.pm.util.AppLogger;
+import com.vertex.pm.util.IdGenerator;
 import com.vertex.pm.util.JsonUtil;
 
 import java.io.IOException;
@@ -16,16 +19,9 @@ import java.net.HttpURLConnection;
 import java.time.LocalDate;
 import java.util.Map;
 
-/**
- * Handles dashboard, task, resource, budget, monitoring, and report endpoints.
- * GRASP Controller: receives module-specific requests from the web UI.
- */
 public class SystemController implements HttpHandler {
     private final ProjectService projectService;
 
-    /**
-     * Creates the controller.
-     */
     public SystemController(ProjectService projectService) {
         this.projectService = projectService;
     }
@@ -35,193 +31,136 @@ public class SystemController implements HttpHandler {
         try {
             String path = exchange.getRequestURI().getPath();
             String method = exchange.getRequestMethod().toUpperCase();
+            AppLogger.info(method + " " + path);
 
             if ("/api/dashboard".equals(path) && "GET".equals(method)) {
-                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_OK,
-                        JsonUtil.mapToJson(projectService.getDashboardSummary()));
-                return;
-            }
-            if ("/api/tasks".equals(path) && "GET".equals(method)) {
-                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_OK,
-                        JsonUtil.tasksToJson(projectService.getAllTasks()));
-                return;
-            }
-            if ("/api/tasks".equals(path) && "POST".equals(method)) {
-                Map<String, String> payload = JsonUtil.parseBody(exchange);
-                Task task = new Task(
-                        Integer.parseInt(payload.get("id")),
-                        Integer.parseInt(payload.get("projectId")),
-                        payload.get("name"),
-                        LocalDate.parse(payload.get("startDate")),
-                        LocalDate.parse(payload.get("endDate")),
-                        TaskStatus.valueOf(payload.get("status"))
-                );
-                projectService.addTask(task);
-                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_CREATED, "{\"message\":\"Task created\"}");
-                return;
-            }
-            if (path.startsWith("/api/tasks/") && "PUT".equals(method)) {
-                int taskId = Integer.parseInt(path.substring("/api/tasks/".length()));
-                Map<String, String> payload = JsonUtil.parseBody(exchange);
-                if (payload.containsKey("name")) {
-                    Task task = new Task(
-                            taskId,
-                            Integer.parseInt(payload.get("projectId")),
-                            payload.get("name"),
-                            LocalDate.parse(payload.get("startDate")),
-                            LocalDate.parse(payload.get("endDate")),
-                            TaskStatus.valueOf(payload.get("status"))
-                    );
-                    projectService.updateTask(task);
-                } else {
-                    projectService.updateTaskStatus(taskId, TaskStatus.valueOf(payload.get("status")));
-                }
-                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_OK, "{\"message\":\"Task updated\"}");
-                return;
-            }
-            if (path.startsWith("/api/tasks/") && "DELETE".equals(method)) {
-                int taskId = Integer.parseInt(path.substring("/api/tasks/".length()));
-                projectService.deleteTask(taskId);
-                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_OK, "{\"message\":\"Task deleted\"}");
-                return;
-            }
-            if ("/api/resources".equals(path) && "GET".equals(method)) {
-                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_OK,
-                        JsonUtil.resourcesToJson(projectService.getAllResources()));
-                return;
-            }
-            if ("/api/resources".equals(path) && "POST".equals(method)) {
-                Map<String, String> payload = JsonUtil.parseBody(exchange);
-                Resource resource = new Resource(
-                        Integer.parseInt(payload.get("id")),
-                        payload.get("name"),
-                        payload.get("role"),
-                        Boolean.parseBoolean(payload.getOrDefault("available", "true"))
-                );
-                projectService.addResource(Integer.parseInt(payload.get("projectId")), resource);
-                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_CREATED, "{\"message\":\"Resource created\"}");
-                return;
-            }
-            if (path.startsWith("/api/resources/") && "PUT".equals(method)) {
-                int resourceId = Integer.parseInt(path.substring("/api/resources/".length()));
-                Map<String, String> payload = JsonUtil.parseBody(exchange);
-                Resource resource = new Resource(
-                        resourceId,
-                        payload.get("name"),
-                        payload.get("role"),
-                        Boolean.parseBoolean(payload.getOrDefault("available", "true"))
-                );
-                projectService.updateResource(resource);
-                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_OK, "{\"message\":\"Resource updated\"}");
-                return;
-            }
-            if (path.startsWith("/api/resources/") && "DELETE".equals(method)) {
-                int resourceId = Integer.parseInt(path.substring("/api/resources/".length()));
-                projectService.deleteResource(resourceId);
-                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_OK, "{\"message\":\"Resource deleted\"}");
-                return;
-            }
-            if (path.startsWith("/api/budget/") && "GET".equals(method)) {
-                int projectId = Integer.parseInt(path.substring("/api/budget/".length()));
-                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_OK,
-                        JsonUtil.budgetToJsonPublic(projectService.getProjectById(projectId).getBudget()));
-                return;
-            }
-            if ("/api/expenses".equals(path) && "GET".equals(method)) {
-                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_OK,
-                        JsonUtil.expensesToJson(projectService.getAllExpenses()));
-                return;
-            }
-            if ("/api/expenses".equals(path) && "POST".equals(method)) {
-                Map<String, String> payload = JsonUtil.parseBody(exchange);
-                Expense expense = new Expense(
-                        Integer.parseInt(payload.get("id")),
-                        Integer.parseInt(payload.get("projectId")),
-                        Double.parseDouble(payload.get("amount")),
-                        payload.get("category"),
-                        LocalDate.parse(payload.get("date"))
-                );
-                projectService.addExpense(expense);
-                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_CREATED, "{\"message\":\"Expense created\"}");
-                return;
-            }
-            if (path.startsWith("/api/expenses/") && "PUT".equals(method)) {
-                int expenseId = Integer.parseInt(path.substring("/api/expenses/".length()));
-                Map<String, String> payload = JsonUtil.parseBody(exchange);
-                Expense expense = new Expense(
-                        expenseId,
-                        Integer.parseInt(payload.get("projectId")),
-                        Double.parseDouble(payload.get("amount")),
-                        payload.get("category"),
-                        LocalDate.parse(payload.get("date"))
-                );
-                projectService.updateExpense(expense);
-                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_OK, "{\"message\":\"Expense updated\"}");
-                return;
-            }
-            if (path.startsWith("/api/expenses/") && "DELETE".equals(method)) {
-                int expenseId = Integer.parseInt(path.substring("/api/expenses/".length()));
-                projectService.deleteExpense(expenseId);
-                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_OK, "{\"message\":\"Expense deleted\"}");
-                return;
-            }
-            if ("/api/milestones".equals(path) && "GET".equals(method)) {
-                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_OK,
-                        JsonUtil.milestonesToJson(projectService.getAllMilestones()));
-                return;
-            }
-            if ("/api/milestones".equals(path) && "POST".equals(method)) {
-                Map<String, String> payload = JsonUtil.parseBody(exchange);
-                Milestone milestone = new Milestone(
-                        Integer.parseInt(payload.get("id")),
-                        Integer.parseInt(payload.get("projectId")),
-                        payload.get("name"),
-                        LocalDate.parse(payload.get("targetDate")),
-                        Boolean.parseBoolean(payload.getOrDefault("completed", "false"))
-                );
-                projectService.addMilestone(milestone);
-                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_CREATED, "{\"message\":\"Milestone created\"}");
-                return;
-            }
-            if (path.startsWith("/api/milestones/") && "PUT".equals(method)) {
-                int milestoneId = Integer.parseInt(path.substring("/api/milestones/".length()));
-                Map<String, String> payload = JsonUtil.parseBody(exchange);
-                if (payload.isEmpty()) {
-                    projectService.completeMilestone(milestoneId);
-                } else {
-                    Milestone milestone = new Milestone(
-                            milestoneId,
-                            Integer.parseInt(payload.get("projectId")),
-                            payload.get("name"),
-                            LocalDate.parse(payload.get("targetDate")),
-                            Boolean.parseBoolean(payload.getOrDefault("completed", "false"))
-                    );
-                    projectService.updateMilestone(milestone);
-                }
-                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_OK, "{\"message\":\"Milestone completed\"}");
-                return;
-            }
-            if (path.startsWith("/api/milestones/") && "DELETE".equals(method)) {
-                int milestoneId = Integer.parseInt(path.substring("/api/milestones/".length()));
-                projectService.deleteMilestone(milestoneId);
-                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_OK, "{\"message\":\"Milestone deleted\"}");
+                JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(projectService.getDashboardSummary()));
                 return;
             }
             if ("/api/monitoring".equals(path) && "GET".equals(method)) {
-                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_OK,
-                        JsonUtil.mapToJson(projectService.getMonitoringSummary()));
+                JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(projectService.getMonitoringSummary()));
                 return;
             }
-            if ("/api/reports".equals(path) && "GET".equals(method)) {
-                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_OK,
-                        JsonUtil.mapToJson(projectService.getReportsSummary()));
+            if ("/api/tasks".equals(path) && "GET".equals(method)) {
+                JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(projectService.getAllTasks()));
+                return;
+            }
+            if ("/api/tasks".equals(path) && "POST".equals(method)) {
+                Map<String, Object> body = JsonUtil.parseBody(exchange);
+                Task task = new Task(
+                        IdGenerator.next("TSK"),
+                        stringValue(body.get("projectId")),
+                        stringValue(body.get("name")),
+                        stringValue(body.get("description")),
+                        LocalDate.parse(stringValue(body.get("startDate"))),
+                        LocalDate.parse(stringValue(body.get("dueDate"))),
+                        TaskStatus.valueOf(stringValue(body.getOrDefault("status", "PLANNED"))),
+                        stringValue(body.get("priority")),
+                        stringValue(body.get("assignedTo"))
+                );
+                JsonUtil.sendJson(exchange, 201, JsonUtil.toJson(projectService.createTask(task)));
+                return;
+            }
+            if (path.matches("/api/tasks/[^/]+") && "PATCH".equals(method)) {
+                JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(projectService.patchTask(path.substring("/api/tasks/".length()), JsonUtil.parseBody(exchange))));
+                return;
+            }
+            if (path.matches("/api/tasks/[^/]+") && "DELETE".equals(method)) {
+                projectService.deleteTask(path.substring("/api/tasks/".length()));
+                JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(Map.of("message", "Task deleted")));
+                return;
+            }
+            if ("/api/resources".equals(path) && "GET".equals(method)) {
+                JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(projectService.getAllResources()));
+                return;
+            }
+            if ("/api/resources".equals(path) && "POST".equals(method)) {
+                Map<String, Object> body = JsonUtil.parseBody(exchange);
+                Resource resource = new Resource(
+                        IdGenerator.next("RES"),
+                        stringValue(body.get("projectId")),
+                        stringValue(body.get("name")),
+                        stringValue(body.get("role")),
+                        booleanValue(body.getOrDefault("availability", true)),
+                        stringValue(body.get("skillSet"))
+                );
+                JsonUtil.sendJson(exchange, 201, JsonUtil.toJson(projectService.createResource(resource)));
+                return;
+            }
+            if (path.matches("/api/resources/[^/]+") && "PATCH".equals(method)) {
+                JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(projectService.patchResource(path.substring("/api/resources/".length()), JsonUtil.parseBody(exchange))));
+                return;
+            }
+            if (path.matches("/api/resources/[^/]+") && "DELETE".equals(method)) {
+                projectService.deleteResource(path.substring("/api/resources/".length()));
+                JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(Map.of("message", "Resource deleted")));
+                return;
+            }
+            if ("/api/milestones".equals(path) && "GET".equals(method)) {
+                JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(projectService.getAllMilestones()));
+                return;
+            }
+            if ("/api/milestones".equals(path) && "POST".equals(method)) {
+                Map<String, Object> body = JsonUtil.parseBody(exchange);
+                Milestone milestone = new Milestone(
+                        IdGenerator.next("MLS"),
+                        stringValue(body.get("projectId")),
+                        stringValue(body.get("name")),
+                        LocalDate.parse(stringValue(body.get("targetDate"))),
+                        booleanValue(body.getOrDefault("completionStatus", false)),
+                        stringValue(body.get("description"))
+                );
+                JsonUtil.sendJson(exchange, 201, JsonUtil.toJson(projectService.createMilestone(milestone)));
+                return;
+            }
+            if (path.matches("/api/milestones/[^/]+") && "PATCH".equals(method)) {
+                JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(projectService.patchMilestone(path.substring("/api/milestones/".length()), JsonUtil.parseBody(exchange))));
+                return;
+            }
+            if (path.matches("/api/milestones/[^/]+") && "DELETE".equals(method)) {
+                projectService.deleteMilestone(path.substring("/api/milestones/".length()));
+                JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(Map.of("message", "Milestone deleted")));
+                return;
+            }
+            if ("/api/expenses".equals(path) && "GET".equals(method)) {
+                JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(projectService.getAllExpenses()));
+                return;
+            }
+            if ("/api/expenses".equals(path) && "POST".equals(method)) {
+                Map<String, Object> body = JsonUtil.parseBody(exchange);
+                Expense expense = new Expense(
+                        IdGenerator.next("EXP"),
+                        stringValue(body.get("projectId")),
+                        LocalDate.parse(stringValue(body.get("expenseDate"))),
+                        stringValue(body.get("description")),
+                        stringValue(body.get("category")),
+                        doubleValue(body.get("amount"))
+                );
+                JsonUtil.sendJson(exchange, 201, JsonUtil.toJson(projectService.createExpense(expense)));
+                return;
+            }
+            if (path.matches("/api/expenses/[^/]+") && "PATCH".equals(method)) {
+                JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(projectService.patchExpense(path.substring("/api/expenses/".length()), JsonUtil.parseBody(exchange))));
+                return;
+            }
+            if (path.matches("/api/expenses/[^/]+") && "DELETE".equals(method)) {
+                projectService.deleteExpense(path.substring("/api/expenses/".length()));
+                JsonUtil.sendJson(exchange, 200, JsonUtil.toJson(Map.of("message", "Expense deleted")));
                 return;
             }
 
-            JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_NOT_FOUND, "{\"error\":\"Endpoint not found\"}");
-        } catch (ProjectManagementException ex) {
-            JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_BAD_REQUEST,
-                    "{\"error\":\"" + JsonUtil.escape(ex.getMessage()) + "\"}");
+            JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_NOT_FOUND,
+                    JsonUtil.toJson(Map.of("error", "Endpoint not found", "type", ExceptionType.INVALID_REQUEST.name())));
+        } catch (ProjectManagementException exception) {
+            AppLogger.warning("System endpoint failed.", exception);
+            JsonUtil.sendJson(exchange, exception.getStatusCode(), JsonUtil.errorJson(exception));
+        } catch (Exception exception) {
+            AppLogger.error("Unexpected system endpoint failure.", exception);
+            JsonUtil.sendJson(exchange, 500, JsonUtil.toJson(Map.of("error", exception.getMessage(), "type", ExceptionType.DATABASE_ERROR.name())));
         }
     }
+
+    private String stringValue(Object value) { return value == null ? "" : String.valueOf(value); }
+    private double doubleValue(Object value) { return value instanceof Number n ? n.doubleValue() : Double.parseDouble(String.valueOf(value)); }
+    private boolean booleanValue(Object value) { return value instanceof Boolean b ? b : Boolean.parseBoolean(String.valueOf(value)); }
 }

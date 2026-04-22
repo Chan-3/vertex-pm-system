@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vertex Project Management</title>
+    <title>Vertex PM System</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="app-shell">
         <nav class="top-nav">
             <div>
-                <p class="eyebrow">Project Management Subsystem</p>
-                <h1>Vertex PM Console</h1>
+                <p class="eyebrow">Car Manufacturing Project Management</p>
+                <h1>Vertex PM System</h1>
             </div>
             <div class="nav-links">
                 <button type="button" data-section="dashboard" class="nav-link active">Dashboard</button>
@@ -19,8 +19,7 @@
                 <button type="button" data-section="tasks" class="nav-link">Tasks</button>
                 <button type="button" data-section="resources" class="nav-link">Resources</button>
                 <button type="button" data-section="milestones" class="nav-link">Milestones</button>
-                <button type="button" data-section="budget" class="nav-link">Budget & Expenses</button>
-                <button type="button" data-section="monitoring" class="nav-link">Monitoring</button>
+                <button type="button" data-section="expenses" class="nav-link">Expenses</button>
                 <button type="button" data-section="reports" class="nav-link">Reports</button>
             </div>
         </nav>
@@ -29,237 +28,179 @@
             <section id="dashboard" class="screen active">
                 <div class="hero-card">
                     <div>
-                        <p class="eyebrow">System Overview</p>
-                        <h2>Real-time PM Dashboard</h2>
-                        <p class="muted">Professional overview of projects, budget usage, and risk alerts.</p>
+                        <p class="eyebrow">Operations Snapshot</p>
+                        <h2>EV, powertrain, and ADAS programs</h2>
+                        <p id="dashboard-focus" class="muted">Direct `pm_db` execution path with realistic manufacturing project tracking and automatic progress updates.</p>
                     </div>
                     <div class="progress-wrap">
-                        <span>Budget Usage</span>
-                        <div class="progress-bar">
-                            <div id="dashboard-budget-fill" class="progress-fill"></div>
-                        </div>
+                        <span id="dashboard-progress-label">Budget Usage</span>
+                        <div class="progress-bar"><div id="dashboard-budget-fill" class="progress-fill"></div></div>
                         <strong id="dashboard-budget-label">0%</strong>
                     </div>
                 </div>
                 <section class="stats-grid">
                     <article class="stat-card"><span>Total Projects</span><strong id="metric-total-projects">0</strong></article>
-                    <article class="stat-card"><span>Active Projects</span><strong id="metric-active-projects">0</strong></article>
-                    <article class="stat-card"><span>Completed Projects</span><strong id="metric-completed-projects">0</strong></article>
-                    <article class="stat-card"><span>Risk Alerts</span><strong id="metric-risk-alerts">0</strong></article>
+                    <article class="stat-card"><span>In Progress</span><strong id="metric-in-progress-projects">0</strong></article>
+                    <article class="stat-card"><span>Completed</span><strong id="metric-completed-projects">0</strong></article>
+                    <article class="stat-card"><span>Overdue Tasks</span><strong id="metric-overdue-tasks">0</strong></article>
                 </section>
             </section>
 
             <section id="projects" class="screen">
-                <div class="section-head">
-                    <div>
-                        <p class="eyebrow">Project Management</p>
-                        <h2>Projects</h2>
-                    </div>
-                    <p id="project-message" class="form-message"></p>
+                <div class="section-head"><div><p class="eyebrow">Programs</p><h2>Projects</h2></div><p id="project-message" class="form-message"></p></div>
+                <div class="screen-filter">
+                    <label class="field-group">
+                        <span>Filter By Project</span>
+                        <select id="project-screen-filter"></select>
+                    </label>
                 </div>
                 <div class="table-card">
                     <table>
-                        <thead>
-                            <tr><th>Project ID</th><th>Name</th><th>Status</th><th>Start</th><th>End</th><th>Actions</th></tr>
-                        </thead>
+                        <thead><tr><th>ID</th><th>Program</th><th>Manager</th><th>Dates</th><th>Status</th><th>Progress</th><th>Actions</th></tr></thead>
                         <tbody id="projects-table"></tbody>
                     </table>
                 </div>
                 <form id="project-form" class="project-form">
-                    <input type="number" name="id" placeholder="Project ID" required>
-                    <input type="text" name="name" placeholder="Name" required>
-                    <input type="text" name="description" placeholder="Description" required>
+                    <input type="text" name="name" placeholder="Project name" required>
+                    <input type="text" name="managerName" placeholder="Manager name" required>
+                    <input type="text" name="description" placeholder="Short description" required>
+                    <input type="text" name="objectives" placeholder="Objectives" required>
+                    <label class="field-group"><span>Start Date</span><input type="date" name="startDate" required></label>
+                    <label class="field-group"><span>End Date</span><input type="date" name="endDate" required></label>
+                    <input type="number" name="budgetTotal" placeholder="Budget total" min="0" step="0.01" required>
+                    <button type="submit">Create Project</button>
+                </form>
+            </section>
+
+            <section id="tasks" class="screen">
+                <div class="section-head"><div><p class="eyebrow">Workflow</p><h2>Tasks</h2></div><p id="task-message" class="form-message"></p></div>
+                <div class="screen-filter">
                     <label class="field-group">
-                        <span>Start Date</span>
-                        <input type="date" name="startDate" required>
+                        <span>Filter By Project</span>
+                        <select id="task-screen-filter"></select>
                     </label>
-                    <label class="field-group">
-                        <span>End Date</span>
-                        <input type="date" name="endDate" required>
-                    </label>
+                </div>
+                <div class="table-card">
+                    <table>
+                        <thead><tr><th>ID</th><th>Project</th><th>Task</th><th>Owner</th><th>Dates</th><th>Status</th><th>Actions</th></tr></thead>
+                        <tbody id="tasks-table"></tbody>
+                    </table>
+                </div>
+                <form id="task-form" class="project-form">
+                    <select name="projectId" id="task-project-id" required></select>
+                    <input type="text" name="name" placeholder="Task name" required>
+                    <input type="text" name="description" placeholder="Task description" required>
+                    <input type="text" name="assignedTo" placeholder="Assigned to" required>
+                    <label class="field-group"><span>Start Date</span><input type="date" name="startDate" required></label>
+                    <label class="field-group"><span>Due Date</span><input type="date" name="dueDate" required></label>
+                    <select name="priority">
+                        <option value="HIGH">HIGH</option>
+                        <option value="MEDIUM">MEDIUM</option>
+                        <option value="LOW">LOW</option>
+                    </select>
                     <select name="status">
                         <option value="PLANNED">PLANNED</option>
                         <option value="IN_PROGRESS">IN_PROGRESS</option>
                         <option value="COMPLETED">COMPLETED</option>
                     </select>
-                    <input type="number" step="0.01" name="budget" placeholder="Budget" required>
-                    <button type="submit">Add Project</button>
-                </form>
-            </section>
-
-            <section id="tasks" class="screen">
-                <div class="section-head"><div><p class="eyebrow">Task Management</p><h2>Tasks</h2></div><p id="task-message" class="form-message"></p></div>
-                <div class="table-card">
-                    <table>
-                        <thead>
-                            <tr><th>Task ID</th><th>Project</th><th>Name</th><th>Start Date</th><th>End Date</th><th>Status</th><th>Actions</th></tr>
-                        </thead>
-                        <tbody id="tasks-table"></tbody>
-                    </table>
-                </div>
-                <form id="task-form" class="project-form">
-                    <input type="number" name="id" placeholder="Task ID" required>
-                    <input type="number" name="projectId" placeholder="Project ID" required>
-                    <input type="text" name="name" placeholder="Task Name" required>
-                    <label class="field-group">
-                        <span>Start Date</span>
-                        <input type="date" name="startDate" title="Task Start Date" required>
-                    </label>
-                    <label class="field-group">
-                        <span>End Date</span>
-                        <input type="date" name="endDate" title="Task End Date" required>
-                    </label>
-                    <select name="status">
-                        <option value="NOT_STARTED">NOT_STARTED</option>
-                        <option value="IN_PROGRESS">IN_PROGRESS</option>
-                        <option value="COMPLETED">COMPLETED</option>
-                    </select>
-                    <button type="submit">Add Task</button>
-                </form>
-                <form id="task-edit-form" class="project-form">
-                    <input type="number" name="id" placeholder="Task ID to Edit" required>
-                    <input type="number" name="projectId" placeholder="Project ID" required>
-                    <input type="text" name="name" placeholder="Updated Task Name" required>
-                    <label class="field-group">
-                        <span>Start Date</span>
-                        <input type="date" name="startDate" title="Updated Task Start Date" required>
-                    </label>
-                    <label class="field-group">
-                        <span>End Date</span>
-                        <input type="date" name="endDate" title="Updated Task End Date" required>
-                    </label>
-                    <select name="status">
-                        <option value="NOT_STARTED">NOT_STARTED</option>
-                        <option value="IN_PROGRESS">IN_PROGRESS</option>
-                        <option value="COMPLETED">COMPLETED</option>
-                    </select>
-                    <button type="submit">Edit Task</button>
+                    <button type="submit">Create Task</button>
                 </form>
             </section>
 
             <section id="resources" class="screen">
-                <div class="section-head"><div><p class="eyebrow">Resource Management</p><h2>Resources</h2></div><p id="resource-message" class="form-message"></p></div>
+                <div class="section-head"><div><p class="eyebrow">Teams</p><h2>Resources</h2></div><p id="resource-message" class="form-message"></p></div>
+                <div class="screen-filter">
+                    <label class="field-group">
+                        <span>Filter By Project</span>
+                        <select id="resource-screen-filter"></select>
+                    </label>
+                </div>
                 <div class="table-card">
                     <table>
-                        <thead>
-                            <tr><th>Resource ID</th><th>Name</th><th>Role</th><th>Availability</th><th>Actions</th></tr>
-                        </thead>
+                        <thead><tr><th>ID</th><th>Project</th><th>Name</th><th>Role</th><th>Availability</th><th>Actions</th></tr></thead>
                         <tbody id="resources-table"></tbody>
                     </table>
                 </div>
                 <form id="resource-form" class="project-form">
-                    <input type="number" name="id" placeholder="Resource ID" required>
-                    <input type="number" name="projectId" placeholder="Project ID" required>
-                    <input type="text" name="name" placeholder="Name" required>
+                    <select name="projectId" id="resource-project-id" required></select>
+                    <input type="text" name="name" placeholder="Resource name" required>
                     <input type="text" name="role" placeholder="Role" required>
-                    <select name="available">
+                    <input type="text" name="skillSet" placeholder="Skill set" required>
+                    <select name="availability">
                         <option value="true">Available</option>
-                        <option value="false">Busy</option>
+                        <option value="false">Unavailable</option>
                     </select>
-                    <button type="submit">Add Resource</button>
-                </form>
-                <form id="resource-edit-form" class="project-form">
-                    <input type="number" name="id" placeholder="Resource ID to Edit" required>
-                    <input type="text" name="name" placeholder="Updated Name" required>
-                    <input type="text" name="role" placeholder="Updated Role" required>
-                    <select name="available">
-                        <option value="true">Available</option>
-                        <option value="false">Busy</option>
-                    </select>
-                    <button type="submit">Edit Resource</button>
+                    <button type="submit">Create Resource</button>
                 </form>
             </section>
 
             <section id="milestones" class="screen">
-                <div class="section-head"><div><p class="eyebrow">Milestone Management</p><h2>Milestones</h2></div><p id="milestone-message" class="form-message"></p></div>
+                <div class="section-head"><div><p class="eyebrow">Delivery Gates</p><h2>Milestones</h2></div><p id="milestone-message" class="form-message"></p></div>
+                <div class="screen-filter">
+                    <label class="field-group">
+                        <span>Filter By Project</span>
+                        <select id="milestone-screen-filter"></select>
+                    </label>
+                </div>
                 <div class="table-card">
                     <table>
-                        <thead>
-                            <tr><th>Milestone ID</th><th>Project</th><th>Name</th><th>Target Date</th><th>Status</th><th>Actions</th></tr>
-                        </thead>
+                        <thead><tr><th>ID</th><th>Project</th><th>Milestone</th><th>Target Date</th><th>Status</th><th>Actions</th></tr></thead>
                         <tbody id="milestones-table"></tbody>
                     </table>
                 </div>
                 <form id="milestone-form" class="project-form">
-                    <input type="number" name="id" placeholder="Milestone ID" required>
-                    <input type="number" name="projectId" placeholder="Project ID" required>
-                    <input type="text" name="name" placeholder="Milestone Name" required>
-                    <input type="date" name="targetDate" required>
-                    <select name="completed">
+                    <select name="projectId" id="milestone-project-id" required></select>
+                    <input type="text" name="name" placeholder="Milestone name" required>
+                    <input type="text" name="description" placeholder="Milestone description" required>
+                    <label class="field-group"><span>Target Date</span><input type="date" name="targetDate" required></label>
+                    <select name="completionStatus">
                         <option value="false">Pending</option>
                         <option value="true">Completed</option>
                     </select>
-                    <button type="submit">Add Milestone</button>
-                </form>
-                <form id="milestone-edit-form" class="project-form">
-                    <input type="number" name="id" placeholder="Milestone ID to Edit" required>
-                    <input type="number" name="projectId" placeholder="Project ID" required>
-                    <input type="text" name="name" placeholder="Updated Milestone Name" required>
-                    <input type="date" name="targetDate" required>
-                    <select name="completed">
-                        <option value="false">Pending</option>
-                        <option value="true">Completed</option>
-                    </select>
-                    <button type="submit">Edit Milestone</button>
+                    <button type="submit">Create Milestone</button>
                 </form>
             </section>
 
-            <section id="budget" class="screen">
-                <div class="section-head"><div><p class="eyebrow">Budget & Expenses</p><h2>Budget Management</h2></div><p id="expense-message" class="form-message"></p></div>
-                <section class="stats-grid">
-                    <article class="stat-card"><span>Total Budget</span><strong id="budget-total-all">0</strong></article>
-                    <article class="stat-card"><span>Used Budget</span><strong id="budget-used-all">0</strong></article>
-                    <article class="stat-card"><span>Remaining Budget</span><strong id="budget-remaining-all">0</strong></article>
-                    <article class="stat-card"><span>Status</span><strong id="budget-status">Healthy</strong></article>
-                </section>
+            <section id="expenses" class="screen">
+                <div class="section-head"><div><p class="eyebrow">Budget Control</p><h2>Expenses</h2></div><p id="expense-message" class="form-message"></p></div>
+                <div class="screen-filter">
+                    <label class="field-group">
+                        <span>Filter By Project</span>
+                        <select id="expense-screen-filter"></select>
+                    </label>
+                </div>
                 <div class="table-card">
                     <table>
-                        <thead>
-                            <tr><th>Expense ID</th><th>Project</th><th>Amount</th><th>Category</th><th>Date</th><th>Actions</th></tr>
-                        </thead>
+                        <thead><tr><th>ID</th><th>Project</th><th>Description</th><th>Category</th><th>Amount</th><th>Date</th><th>Actions</th></tr></thead>
                         <tbody id="expenses-table"></tbody>
                     </table>
                 </div>
                 <form id="expense-form" class="project-form">
-                    <input type="number" name="id" placeholder="Expense ID" required>
-                    <input type="number" name="projectId" placeholder="Project ID" required>
-                    <input type="number" step="0.01" name="amount" placeholder="Amount" required>
+                    <select name="projectId" id="expense-project-id" required></select>
+                    <input type="text" name="description" placeholder="Expense description" required>
                     <input type="text" name="category" placeholder="Category" required>
-                    <input type="date" name="date" required>
-                    <button type="submit">Add Expense</button>
+                    <input type="number" name="amount" placeholder="Amount" min="0" step="0.01" required>
+                    <label class="field-group"><span>Expense Date</span><input type="date" name="expenseDate" required></label>
+                    <button type="submit">Create Expense</button>
                 </form>
-                <form id="expense-edit-form" class="project-form">
-                    <input type="number" name="id" placeholder="Expense ID to Edit" required>
-                    <input type="number" name="projectId" placeholder="Project ID" required>
-                    <input type="number" step="0.01" name="amount" placeholder="Updated Amount" required>
-                    <input type="text" name="category" placeholder="Updated Category" required>
-                    <input type="date" name="date" required>
-                    <button type="submit">Edit Expense</button>
-                </form>
-            </section>
-
-            <section id="monitoring" class="screen">
-                <div class="section-head"><div><p class="eyebrow">Monitoring & Risk</p><h2>System Intelligence</h2></div></div>
-                <section class="stats-grid">
-                    <article class="stat-card warning"><span>Delayed Tasks</span><strong id="monitor-delayed">0</strong></article>
-                    <article class="stat-card warning"><span>Budget Overruns</span><strong id="monitor-overrun">0</strong></article>
-                    <article class="stat-card critical"><span>Risk Alerts</span><strong id="monitor-risks">0</strong></article>
-                    <article class="stat-card healthy"><span>Project Health</span><strong id="monitor-health">Healthy</strong></article>
-                </section>
             </section>
 
             <section id="reports" class="screen">
-                <div class="section-head"><div><p class="eyebrow">Reports & Analytics</p><h2>Reports</h2></div></div>
-                <section class="stats-grid">
-                    <article class="stat-card"><span>Project Reports</span><strong id="report-projects">0</strong></article>
-                    <article class="stat-card"><span>Task Reports</span><strong id="report-tasks">0</strong></article>
-                    <article class="stat-card"><span>Budget Reports</span><strong id="report-budgets">0</strong></article>
-                </section>
-                <div class="table-card report-card">
-                    <p class="muted">Use the filters in a future iteration to generate date-range and project-specific reports. This version wires the reporting screen to the backend as required by the blueprint.</p>
+                <div class="section-head"><div><p class="eyebrow">Reporting</p><h2>Project Report</h2></div><p id="report-message" class="form-message"></p></div>
+                <div class="report-toolbar">
+                    <select id="report-project-id"></select>
+                    <button type="button" id="generate-report">Generate Report</button>
                 </div>
+                <div id="report-output" class="table-card report-card"></div>
             </section>
         </main>
+    </div>
+
+    <div id="edit-modal" class="modal hidden">
+        <div class="modal-panel">
+            <div class="section-head"><div><p class="eyebrow">Edit Record</p><h2 id="modal-title">Update</h2></div><button type="button" class="action-btn" id="modal-close">Close</button></div>
+            <form id="modal-form" class="project-form modal-form"></form>
+        </div>
     </div>
 
     <script src="app.js"></script>

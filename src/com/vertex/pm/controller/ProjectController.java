@@ -2,11 +2,14 @@ package com.vertex.pm.controller;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import com.vertex.pm.exception.ExceptionType;
 import com.vertex.pm.exception.ProjectManagementException;
 import com.vertex.pm.model.Budget;
 import com.vertex.pm.model.Project;
 import com.vertex.pm.model.ProjectStatus;
 import com.vertex.pm.service.ProjectService;
+import com.vertex.pm.util.AppLogger;
+import com.vertex.pm.util.IdGenerator;
 import com.vertex.pm.util.JsonUtil;
 
 import java.io.IOException;
@@ -14,16 +17,10 @@ import java.net.HttpURLConnection;
 import java.time.LocalDate;
 import java.util.Map;
 
-/**
- * Handles project-related HTTP requests.
- * GRASP Controller: it receives UI requests and delegates to the service layer.
- */
 public class ProjectController implements HttpHandler {
+    // GRASP Controller: this class receives UI/API requests and delegates work to the service layer.
     private final ProjectService projectService;
 
-    /**
-     * Creates the controller.
-     */
     public ProjectController(ProjectService projectService) {
         this.projectService = projectService;
     }
@@ -31,108 +28,69 @@ public class ProjectController implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         try {
-            if ("GET".equalsIgnoreCase(exchange.getRequestMethod())) {
-                handleGet(exchange);
+            String path = exchange.getRequestURI().getPath();
+            String method = exchange.getRequestMethod().toUpperCase();
+            AppLogger.info(method + " " + path);
+
+            if ("/api/projects".equals(path) && "GET".equals(method)) {
+                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_OK, JsonUtil.toJson(projectService.getAllProjects()));
                 return;
             }
-            if ("POST".equalsIgnoreCase(exchange.getRequestMethod())) {
-                handlePost(exchange);
+            if ("/api/projects".equals(path) && "POST".equals(method)) {
+                Map<String, Object> body = JsonUtil.parseBody(exchange);
+                String projectId = IdGenerator.next("PRJ");
+                Project project = new Project(
+                        projectId,
+                        stringValue(body.get("name")),
+                        stringValue(body.get("description")),
+                        stringValue(body.get("managerName")),
+                        LocalDate.parse(stringValue(body.get("startDate"))),
+                        LocalDate.parse(stringValue(body.get("endDate"))),
+                        ProjectStatus.valueOf(stringValue(body.getOrDefault("status", "PLANNED"))),
+                        stringValue(body.get("objectives")),
+                        intValue(body.getOrDefault("progressPercent", 0)),
+                        new Budget(projectId, doubleValue(body.getOrDefault("budgetTotal", 0)), doubleValue(body.getOrDefault("budgetSpent", 0)))
+                );
+                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_CREATED, JsonUtil.toJson(projectService.createProject(project)));
                 return;
             }
-            if ("PUT".equalsIgnoreCase(exchange.getRequestMethod())) {
-                handlePut(exchange);
+            if (path.matches("/api/projects/[^/]+") && "GET".equals(method)) {
+                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_OK, JsonUtil.toJson(projectService.getProjectById(path.substring("/api/projects/".length()))));
                 return;
             }
-            if ("DELETE".equalsIgnoreCase(exchange.getRequestMethod())) {
-                handleDelete(exchange);
+            if (path.matches("/api/projects/[^/]+") && "PATCH".equals(method)) {
+                String projectId = path.substring("/api/projects/".length());
+                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_OK, JsonUtil.toJson(projectService.patchProject(projectId, JsonUtil.parseBody(exchange))));
                 return;
             }
-            JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_BAD_METHOD,
-                    "{\"error\":\"Unsupported method\"}");
-        } catch (ProjectManagementException ex) {
-            JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_BAD_REQUEST,
-                    "{\"error\":\"" + JsonUtil.escape(ex.getMessage()) + "\"}");
+            if (path.matches("/api/projects/[^/]+/progress") && "PATCH".equals(method)) {
+                String projectId = path.substring("/api/projects/".length(), path.length() - "/progress".length());
+                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_OK, JsonUtil.toJson(projectService.patchProjectProgress(projectId, JsonUtil.parseBody(exchange))));
+                return;
+            }
+            if (path.matches("/api/projects/[^/]+/report") && "GET".equals(method)) {
+                String projectId = path.substring("/api/projects/".length(), path.length() - "/report".length());
+                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_OK, JsonUtil.toJson(projectService.getProjectReport(projectId)));
+                return;
+            }
+            if (path.matches("/api/projects/[^/]+") && "DELETE".equals(method)) {
+                projectService.deleteProject(path.substring("/api/projects/".length()));
+                JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_OK, JsonUtil.toJson(Map.of("message", "Project deleted")));
+                return;
+            }
+
+            JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_NOT_FOUND,
+                    JsonUtil.toJson(Map.of("error", "Endpoint not found", "type", ExceptionType.INVALID_REQUEST.name())));
+        } catch (ProjectManagementException exception) {
+            AppLogger.warning("Project endpoint failed.", exception);
+            JsonUtil.sendJson(exchange, exception.getStatusCode(), JsonUtil.errorJson(exception));
+        } catch (Exception exception) {
+            AppLogger.error("Unexpected project endpoint failure.", exception);
+            JsonUtil.sendJson(exchange, 500, JsonUtil.toJson(Map.of("error", exception.getMessage(), "type", ExceptionType.DATABASE_ERROR.name())));
         }
     }
 
-    /**
-     * Handles GET requests for projects.
-     */
-    private void handleGet(HttpExchange exchange) throws IOException, ProjectManagementException {
-        String path = exchange.getRequestURI().getPath();
-        if ("/api/projects".equals(path)) {
-            JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_OK,
-                    JsonUtil.projectsToJson(projectService.getAllProjects()));
-            return;
-        }
-        if (path.startsWith("/api/projects/")) {
-            int projectId = Integer.parseInt(path.substring("/api/projects/".length()));
-            JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_OK,
-                    JsonUtil.projectToJson(projectService.getProjectById(projectId)));
-            return;
-        }
-        JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_NOT_FOUND, "{\"error\":\"Endpoint not found\"}");
-    }
-
-    /**
-     * Handles project creation requests.
-     */
-    private void handlePost(HttpExchange exchange) throws IOException, ProjectManagementException {
-        if (!"/api/projects".equals(exchange.getRequestURI().getPath())) {
-            JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_NOT_FOUND, "{\"error\":\"Endpoint not found\"}");
-            return;
-        }
-        Map<String, String> payload = JsonUtil.parseBody(exchange);
-        Project project = new Project(
-                Integer.parseInt(payload.getOrDefault("id", "0")),
-                payload.get("name"),
-                payload.getOrDefault("description", ""),
-                LocalDate.parse(payload.get("startDate")),
-                LocalDate.parse(payload.get("endDate")),
-                ProjectStatus.valueOf(payload.getOrDefault("status", "PLANNED")),
-                new Budget(Integer.parseInt(payload.getOrDefault("id", "0")),
-                        Double.parseDouble(payload.getOrDefault("budget", "0")))
-        );
-        projectService.createProject(project);
-        JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_CREATED,
-                "{\"message\":\"Project created successfully\"}");
-    }
-
-    /**
-     * Handles project update requests.
-     */
-    private void handlePut(HttpExchange exchange) throws IOException, ProjectManagementException {
-        if (!exchange.getRequestURI().getPath().startsWith("/api/projects/")) {
-            JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_NOT_FOUND, "{\"error\":\"Endpoint not found\"}");
-            return;
-        }
-        int projectId = Integer.parseInt(exchange.getRequestURI().getPath().substring("/api/projects/".length()));
-        Map<String, String> payload = JsonUtil.parseBody(exchange);
-        Project project = new Project(
-                projectId,
-                payload.get("name"),
-                payload.getOrDefault("description", ""),
-                LocalDate.parse(payload.get("startDate")),
-                LocalDate.parse(payload.get("endDate")),
-                ProjectStatus.valueOf(payload.getOrDefault("status", "PLANNED")),
-                new Budget(projectId, Double.parseDouble(payload.getOrDefault("budget", "0")))
-        );
-        projectService.updateProject(project);
-        JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_OK,
-                "{\"message\":\"Project updated successfully\"}");
-    }
-
-    /**
-     * Handles project delete requests.
-     */
-    private void handleDelete(HttpExchange exchange) throws IOException, ProjectManagementException {
-        if (!exchange.getRequestURI().getPath().startsWith("/api/projects/")) {
-            JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_NOT_FOUND, "{\"error\":\"Endpoint not found\"}");
-            return;
-        }
-        int projectId = Integer.parseInt(exchange.getRequestURI().getPath().substring("/api/projects/".length()));
-        projectService.deleteProject(projectId);
-        JsonUtil.sendJson(exchange, HttpURLConnection.HTTP_OK,
-                "{\"message\":\"Project deleted successfully\"}");
-    }
+    private String stringValue(Object value) { return value == null ? "" : String.valueOf(value); }
+    private int intValue(Object value) { return value instanceof Number n ? n.intValue() : Integer.parseInt(String.valueOf(value)); }
+    private double doubleValue(Object value) { return value instanceof Number n ? n.doubleValue() : Double.parseDouble(String.valueOf(value)); }
 }

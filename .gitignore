@@ -4,6 +4,7 @@ out/
 *.jar
 *.war
 *.ear
+!lib/*.jar
 
 # Logs
 *.log
@@ -25,3 +26,4 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+sources.txt

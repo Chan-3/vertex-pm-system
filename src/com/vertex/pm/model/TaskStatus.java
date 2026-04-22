@@ -4,7 +4,7 @@ package com.vertex.pm.model;
  * Defines the supported lifecycle states for a task.
  */
 public enum TaskStatus {
-    NOT_STARTED,
+    PLANNED,
     IN_PROGRESS,
     COMPLETED
 }

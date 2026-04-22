@@ -1,58 +1,30 @@
 package com.vertex.pm.model;
 
-/**
- * Represents a resource assigned to project work.
- */
 public class Resource {
-    private final int id;
+    private final String id;
+    private final String projectId;
     private String name;
     private String role;
-    private boolean available;
+    private boolean availability;
+    private String skillSet;
 
-    /**
-     * Creates a resource.
-     */
-    public Resource(int id, String name, String role, boolean available) {
+    public Resource(String id, String projectId, String name, String role, boolean availability, String skillSet) {
         this.id = id;
+        this.projectId = projectId;
         this.name = name;
         this.role = role;
-        this.available = available;
+        this.availability = availability;
+        this.skillSet = skillSet;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Updates the resource name.
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    /**
-     * Updates the resource role.
-     */
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public boolean isAvailable() {
-        return available;
-    }
-
-    /**
-     * Updates the resource availability.
-     */
-    public void setAvailable(boolean available) {
-        this.available = available;
-    }
+    public String getId() { return id; }
+    public String getProjectId() { return projectId; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
+    public boolean isAvailability() { return availability; }
+    public void setAvailability(boolean availability) { this.availability = availability; }
+    public String getSkillSet() { return skillSet; }
+    public void setSkillSet(String skillSet) { this.skillSet = skillSet; }
 }

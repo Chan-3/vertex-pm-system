@@ -25,4 +25,8 @@ public final class AppLogger {
     public static void info(String message) {
         LOGGER.log(Level.INFO, message);
     }
+
+    public static void error(String message, Throwable throwable) {
+        LOGGER.log(Level.SEVERE, message, throwable);
+    }
 }

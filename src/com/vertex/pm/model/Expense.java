@@ -2,65 +2,31 @@ package com.vertex.pm.model;
 
 import java.time.LocalDate;
 
-/**
- * Represents a budget expense entry.
- */
 public class Expense {
-    private final int id;
-    private final int projectId;
-    private double amount;
+    private final String id;
+    private final String projectId;
+    private LocalDate expenseDate;
+    private String description;
     private String category;
-    private LocalDate date;
+    private double amount;
 
-    /**
-     * Creates an expense.
-     */
-    public Expense(int id, int projectId, double amount, String category, LocalDate date) {
+    public Expense(String id, String projectId, LocalDate expenseDate, String description, String category, double amount) {
         this.id = id;
         this.projectId = projectId;
-        this.amount = amount;
+        this.expenseDate = expenseDate;
+        this.description = description;
         this.category = category;
-        this.date = date;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public int getProjectId() {
-        return projectId;
-    }
-
-    public double getAmount() {
-        return amount;
-    }
-
-    /**
-     * Updates the expense amount.
-     */
-    public void setAmount(double amount) {
         this.amount = amount;
     }
 
-    public String getCategory() {
-        return category;
-    }
-
-    /**
-     * Updates the expense category.
-     */
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
-    public LocalDate getDate() {
-        return date;
-    }
-
-    /**
-     * Updates the expense date.
-     */
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
+    public String getId() { return id; }
+    public String getProjectId() { return projectId; }
+    public LocalDate getExpenseDate() { return expenseDate; }
+    public void setExpenseDate(LocalDate expenseDate) { this.expenseDate = expenseDate; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
+    public double getAmount() { return amount; }
+    public void setAmount(double amount) { this.amount = amount; }
 }

@@ -1,25 +1,19 @@
 package com.vertex.pm.model;
 
-/**
- * Represents a task dependency relationship.
- */
 public class Dependency {
-    private final int taskId;
-    private final int dependsOnTaskId;
+    private final String taskId;
+    private final String dependsOnTaskId;
 
-    /**
-     * Creates a dependency between two tasks.
-     */
-    public Dependency(int taskId, int dependsOnTaskId) {
+    public Dependency(String taskId, String dependsOnTaskId) {
         this.taskId = taskId;
         this.dependsOnTaskId = dependsOnTaskId;
     }
 
-    public int getTaskId() {
+    public String getTaskId() {
         return taskId;
     }
 
-    public int getDependsOnTaskId() {
+    public String getDependsOnTaskId() {
         return dependsOnTaskId;
     }
 }

@@ -1,110 +1,184 @@
 # Implemented Work
 
-This file records what has been completed in the project.
+This file records the current completed work in the direct `pm_db` version of Vertex PM System.
 
-## Completed Architecture
+## 1. Architecture
 
-- Created the project in the blueprint package structure under `com.vertex.pm`
-- Implemented layered flow:
-  - UI
-  - Controller
-  - Service
-  - Repository
-- Added separate repository strategies for:
-  - MySQL repository
-  - API repository
-- Added a factory to choose the correct repository
-- Added failover behavior from MySQL to API
+- kept the project in a clean layered structure under `src/com/vertex/pm`
+- used `controller -> service -> repository -> database`
+- kept one active runtime data path: direct MySQL access to `pm_db`
+- removed integration and failover behavior from the main runtime path
 
-## Completed Models
+## 2. Domain Model
+
+Implemented the main project management domain classes:
 
 - `Project`
 - `Task`
-- `Milestone`
 - `Resource`
-- `Budget`
+- `TeamMember`
+- `Milestone`
 - `Expense`
-- `Dependency`
 - `Risk`
+- `Budget`
+- `Dependency`
+- `ProjectMonitor`
+- `ProjectReport`
 - `ProjectStatus`
 - `TaskStatus`
 - `RiskSeverity`
 
-## Completed Exception Handling
+## 3. Database Design
 
-- `ProjectManagementException`
-- `ProjectNotFoundException`
-- `InvalidTaskDateException`
-- `ResourceNotAvailableException`
-- `DuplicateProjectException`
-- `RepositoryException`
+Updated `sql/schema.sql` so the live schema now includes:
 
-## Completed Service and Controller Logic
+- `project`
+- `budget`
+- `task`
+- `resource`
+- `project_team_member`
+- `milestone`
+- `expense`
+- `risk`
+- `dependency`
 
-- Added `ProjectService` for validation and business rules
-- Added `ProjectController` for HTTP request handling
-- Added `SystemController` for dashboard, task, resource, budget, monitoring, and report endpoints
-- Added project fetch, create, update, and delete endpoints
-- Added task create, update-status, and delete endpoints
-- Added task edit endpoint support
-- Added resource create, edit, and delete endpoints
-- Added expense create, edit, and delete endpoints
-- Added milestone create, edit, complete, and delete endpoints
-- Added monitoring, dashboard, and reports endpoints
+The schema now supports:
 
-## Completed Repository and Utility Logic
+- a separate budget table instead of hiding budget values inside the project row only
+- team member data for each project
+- dependency data between tasks
+- realistic car manufacturing seed data
 
-- Added `ProjectRepository` interface
-- Added `MySqlProjectRepository`
-- Added `ApiProjectRepository`
-- Added `FailoverProjectRepository`
-- Added `RepositoryFactory`
-- Added `DatabaseConnectionManager` as a Singleton
-- Added `CloudApiClient` with fallback sample data
-- Added `EnvConfig` for optional `.env` loading and `DATA_SOURCE` switching
-- Added `JsonUtil` for local JSON handling
-- Added `StaticFileHandler` for serving frontend files
-- Added `AppLogger` for warnings and info logs
+## 4. Seed Data
 
-## Completed UI
+Seeded 3 professional manufacturing programs:
 
-- Created web UI with:
-  - top navigation bar
-  - dashboard overview
-  - project management screen with table and actions
-  - task management screen with table and actions
-  - resource management screen with table and actions
-  - milestone management screen with completion action
-  - budget and expense screen
-  - monitoring screen
-  - reports screen
-- Connected the UI to backend endpoints using `fetch`
-- Added automatic refresh after changes
-- Added clear success and error messages
-- Added edit flows for remaining module actions
+- `Electric Vehicle Production Line Setup`
+- `Engine Assembly Optimization`
+- `Autonomous Driving Module Integration`
 
-## Completed Database Support
+For each project, added:
 
-- Added `sql/schema.sql` with the required project, task, resource, assignment, milestone, dependency, budget, and expense tables
+- 10 realistic tasks
+- linked resources
+- named team members with emails
+- milestone checkpoints
+- expense entries
+- open risk records
+- task dependency rows
+- budget data
 
-## Principles Applied In Code
+## 5. Backend Endpoints
 
-- SRP: separate controller, service, repository, util, and model classes
-- OCP: repository abstraction allows extension
-- DIP: service depends on `ProjectRepository`
-- GRASP Controller: `ProjectController`
-- High Cohesion: focused classes
-- Low Coupling: interfaces and repository factory
-- Information Expert: `Project`, `Task`, and `Budget`
-- Strategy: MySQL vs API repositories
-- Factory: `RepositoryFactory`
-- Singleton: `DatabaseConnectionManager`
-- Facade-like failover wrapper: `FailoverProjectRepository`
+Implemented and kept active:
 
-## Notes
+- `GET /api/projects`
+- `GET /api/projects/{id}`
+- `POST /api/projects`
+- `PATCH /api/projects/{id}`
+- `PATCH /api/projects/{id}/progress`
+- `DELETE /api/projects/{id}`
+- `GET /api/projects/{id}/report`
+- `GET /api/dashboard`
+- `GET /api/monitoring`
+- `GET /api/tasks`
+- `POST /api/tasks`
+- `PATCH /api/tasks/{id}`
+- `DELETE /api/tasks/{id}`
+- `GET /api/resources`
+- `POST /api/resources`
+- `PATCH /api/resources/{id}`
+- `DELETE /api/resources/{id}`
+- `GET /api/milestones`
+- `POST /api/milestones`
+- `PATCH /api/milestones/{id}`
+- `DELETE /api/milestones/{id}`
+- `GET /api/expenses`
+- `POST /api/expenses`
+- `PATCH /api/expenses/{id}`
+- `DELETE /api/expenses/{id}`
 
-- The MySQL repository is included structurally and attempts connection checks
-- The project remains runnable even without MySQL because the API fallback is active
-- `.env.example` is included for configuration guidance
-- `schema.sql` now includes sample insert data in addition to table creation
-- Comments were added throughout the code to align with the implementation guide
+## 6. Update Behavior
+
+- changed edit operations to modal-based partial updates
+- kept `PATCH` as the update mechanism
+- only changed fields are sent from the UI
+- removed full child delete-and-recreate update logic
+- kept delete operations as direct record deletes
+- linked expense changes back to budget actual cost recalculation
+
+## 7. Exception Handling
+
+Expanded the exception catalog in `src/com/vertex/pm/exception/ExceptionType.java` and aligned the active code paths more closely with the project-management exception rules.
+
+Implemented or actively used exception types include:
+
+- `PROJECT_NOT_FOUND`
+- `DUPLICATE_PROJECT_NAME`
+- `INVALID_PROJECT_DATES`
+- `PROJECT_UPDATE_FAILED`
+- `TASK_NOT_FOUND`
+- `INVALID_TASK_DATES`
+- `TASK_ALREADY_COMPLETED`
+- `TASK_STATUS_INVALID`
+- `RESOURCE_NOT_FOUND`
+- `RESOURCE_NOT_AVAILABLE`
+- `MILESTONE_NOT_FOUND`
+- `BUDGET_NOT_FOUND`
+- `EXPENSE_NOT_FOUND`
+- `RISK_NOT_FOUND`
+- `REPORT_GENERATION_FAILED`
+- `INVALID_REPORT_DATE_RANGE`
+- `DATABASE_ERROR`
+
+Improvements made in code:
+
+- project date validation now throws `INVALID_PROJECT_DATES`
+- missing resource lookups now throw `RESOURCE_NOT_FOUND`
+- missing milestone lookups now throw `MILESTONE_NOT_FOUND`
+- missing expense lookups now throw `EXPENSE_NOT_FOUND`
+- patch and delete operations now fail clearly when the record does not exist
+
+## 8. UI
+
+Updated `ui/index.html`, `ui/app.js`, and `ui/style.css` so the UI now:
+
+- opens edit modals before updating
+- sends partial `PATCH` payloads only
+- shows clearer start and due dates for tasks
+- uses plain string enum values instead of object-shaped values
+- supports direct delete with confirmation
+- shows project report metrics plus milestone and task detail tables
+- supports a dedicated project dropdown filter in the `Projects` screen
+- supports separate project-based filters in the `Tasks`, `Resources`, `Milestones`, and `Expenses` screens
+- shows project progress more clearly with progress bars and budget context
+- keeps project progress and status aligned with completed tasks and milestones
+
+## 9. Utilities
+
+Kept and cleaned:
+
+- `EnvConfig`
+- `DatabaseConnectionManager`
+- `JsonUtil`
+- `IdGenerator`
+- `AppLogger`
+- `StaticFileHandler`
+
+Important cleanup:
+
+- `.env` now uses only `DB_*` keys plus `PM_PORT`
+- `DatabaseConnectionManager` now reads only the direct local DB configuration path used by this project
+- added `ui-create-samples.txt` so the UI forms have ready-to-copy example values for academic demo use
+
+## 10. Verification
+
+Verified during this refactor:
+
+- source compiles with the local MySQL JDBC driver
+- `sql/schema.sql` is ready to recreate `pm_db`
+- status serialization returns readable strings
+- project, task, milestone, resource, and expense patch flow remains active
+- report generation includes meaningful project-specific output
+- project progress is recalculated from task and milestone completion
+- project search/filter behavior is wired into the UI flow

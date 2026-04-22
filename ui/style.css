@@ -223,6 +223,24 @@ thead th {
     cursor: pointer;
 }
 
+.action-btn.danger {
+    color: #9a4137;
+}
+
+.progress-cell {
+    min-width: 220px;
+}
+
+.progress-cell strong {
+    display: inline-block;
+    margin-bottom: 6px;
+}
+
+.progress-bar.compact {
+    height: 10px;
+    margin: 0 0 8px;
+}
+
 .row-danger {
     background: rgba(154, 65, 55, 0.08);
 }
@@ -243,6 +261,82 @@ thead th {
     min-height: 120px;
 }
 
+.report-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.report-toolbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.screen-filter {
+    display: flex;
+    gap: 12px;
+    align-items: end;
+}
+
+.screen-filter .field-group {
+    width: min(600px, 100%);
+}
+
+.screen-filter select,
+.screen-filter input {
+    width: 100%;
+    padding: 16px 20px;
+    border-radius: 20px;
+    border: 1px solid #d7cabc;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 8px 18px rgba(34, 48, 66, 0.04);
+    font-size: 16px;
+}
+
+.report-toolbar select,
+.report-toolbar button {
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    font: inherit;
+}
+
+.report-toolbar button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(34, 48, 66, 0.35);
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    z-index: 50;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-panel {
+    width: min(960px, 100%);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    padding: 22px;
+    box-shadow: 0 18px 40px rgba(34, 48, 66, 0.16);
+}
+
+.modal-form {
+    margin-top: 20px;
+}
+
 .form-message {
     margin: 0;
     font-weight: 600;
@@ -251,7 +345,8 @@ thead th {
 
 @media (max-width: 1100px) {
     .stats-grid,
-    .project-form {
+    .project-form,
+    .report-grid {
         grid-template-columns: 1fr;
     }
 
@@ -259,5 +354,15 @@ thead th {
     .hero-card {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .report-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .screen-filter {
+        flex-direction: column;
+        align-items: stretch;
     }
 }

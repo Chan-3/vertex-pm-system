@@ -1,54 +1,17 @@
 package com.vertex.pm.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * Represents a project budget and its expenses.
- * GRASP Information Expert: the budget computes totals and variance.
- */
 public class Budget {
-    private final int projectId;
-    private final double totalAmount;
-    private final List<Expense> expenses = new ArrayList<>();
+    private final String projectId;
+    private double totalAmount;
+    private double spentAmount;
 
-    /**
-     * Creates a budget.
-     */
-    public Budget(int projectId, double totalAmount) {
+    public Budget(String projectId, double totalAmount, double spentAmount) {
         this.projectId = projectId;
         this.totalAmount = totalAmount;
+        this.spentAmount = spentAmount;
     }
 
-    /**
-     * Adds an expense into the budget.
-     */
-    public void addExpense(Expense expense) {
-        expenses.add(expense);
-    }
-
-    /**
-     * Removes an expense from the budget.
-     */
-    public boolean removeExpense(int expenseId) {
-        return expenses.removeIf(expense -> expense.getId() == expenseId);
-    }
-
-    /**
-     * Calculates total spent amount.
-     */
-    public double getSpentAmount() {
-        return expenses.stream().mapToDouble(Expense::getAmount).sum();
-    }
-
-    /**
-     * Calculates remaining budget amount.
-     */
-    public double getRemainingAmount() {
-        return totalAmount - getSpentAmount();
-    }
-
-    public int getProjectId() {
+    public String getProjectId() {
         return projectId;
     }
 
@@ -56,7 +19,19 @@ public class Budget {
         return totalAmount;
     }
 
-    public List<Expense> getExpenses() {
-        return List.copyOf(expenses);
+    public void setTotalAmount(double totalAmount) {
+        this.totalAmount = totalAmount;
+    }
+
+    public double getSpentAmount() {
+        return spentAmount;
+    }
+
+    public void setSpentAmount(double spentAmount) {
+        this.spentAmount = spentAmount;
+    }
+
+    public double getRemainingAmount() {
+        return totalAmount - spentAmount;
     }
 }

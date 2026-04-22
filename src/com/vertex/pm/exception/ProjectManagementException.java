@@ -1,20 +1,26 @@
 package com.vertex.pm.exception;
 
-/**
- * Base exception type for the project management subsystem.
- */
 public class ProjectManagementException extends Exception {
-    /**
-     * Creates the exception with a message.
-     */
-    public ProjectManagementException(String message) {
+    private final ExceptionType type;
+    private final int statusCode;
+
+    public ProjectManagementException(ExceptionType type, String message, int statusCode) {
         super(message);
+        this.type = type;
+        this.statusCode = statusCode;
     }
 
-    /**
-     * Creates the exception with a message and cause.
-     */
-    public ProjectManagementException(String message, Throwable cause) {
+    public ProjectManagementException(ExceptionType type, String message, int statusCode, Throwable cause) {
         super(message, cause);
+        this.type = type;
+        this.statusCode = statusCode;
+    }
+
+    public ExceptionType getType() {
+        return type;
+    }
+
+    public int getStatusCode() {
+        return statusCode;
     }
 }

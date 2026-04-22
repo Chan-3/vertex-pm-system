@@ -1,189 +1,237 @@
 # Vertex PM System
 
-This project is a Project Management subsystem built by following `PM_System_Blueprint.md` and `PM_Implementation_Guide.md`.
+Vertex PM System is a Java web-based Project Management System for a car manufacturing domain. It runs directly on `pm_db` and focuses on realistic project delivery workflows such as design freeze, procurement, assembly, testing, and launch readiness.
 
-It uses:
+## What The System Covers
 
-- Java backend
-- Web UI with HTML, CSS, and JavaScript
-- Layered architecture: `UI -> Controller -> Service -> Repository`
-- Repository switching with MySQL as the preferred source and API fallback
-- Custom exceptions, validation, and logging
-- `.env`-style configuration for data source switching
+- Project Management
+- Task Management
+- Resource Management
+- Milestone Management
+- Dependency Tracking
+- Budget And Expense Monitoring
+- Risk Monitoring
+- Project Reports
 
-## Structure
+The seeded projects are:
 
-```text
-vertex-pm-system
-|-- src/com/vertex/pm
-|   |-- controller
-|   |-- exception
-|   |-- factory
-|   |-- model
-|   |-- repository
-|   |   |-- api
-|   |   `-- mysql
-|   |-- service
-|   `-- util
-|-- sql
-`-- ui
-```
+- `Electric Vehicle Production Line Setup`
+- `Engine Assembly Optimization`
+- `Autonomous Driving Module Integration`
 
-## What it does
+Each project includes:
 
-- Shows a professional PM web UI with navigation and module screens
-- Supports dashboard, projects, tasks, resources, milestones, budget, monitoring, and reports screens
-- Exposes REST-like endpoints for those modules
-- Validates project and task rules
-- Tries local MySQL first
-- Falls back to cloud-style API data if MySQL is unavailable
-- Follows `PM_UI_Blueprint.md` with tables, actions, forms, refresh behavior, and clear UI messages
+- 10 realistic tasks
+- assigned resources
+- named team members
+- milestone checkpoints
+- expense records
+- risk records
+- task dependencies
+- budget tracking
 
-## Execution order
+## Main Files And Folders
 
-Run the project in this order:
+- `src/com/vertex/pm/Main.java`
+  Starts the HTTP server and serves the UI.
+- `src/com/vertex/pm/controller/ProjectController.java`
+  Handles project routes such as create, patch, delete, progress update, and report generation.
+- `src/com/vertex/pm/controller/SystemController.java`
+  Handles task, resource, milestone, expense, dashboard, and monitoring routes.
+- `src/com/vertex/pm/service/ProjectService.java`
+  Applies business rules and validation before repository access.
+- `src/com/vertex/pm/repository/ProjectRepository.java`
+  Defines the repository contract used by the service layer.
+- `src/com/vertex/pm/repository/mysql/MySqlProjectRepository.java`
+  Implements direct `pm_db` access for projects, tasks, resources, milestones, expenses, budgets, team members, and dependencies.
+- `src/com/vertex/pm/model/`
+  Contains domain classes such as `Project`, `Task`, `Resource`, `Milestone`, `Expense`, `Risk`, `Budget`, `TeamMember`, `Dependency`, `ProjectMonitor`, and `ProjectReport`.
+- `src/com/vertex/pm/exception/`
+  Contains the structured exception system used across controller, service, and repository layers.
+- `src/com/vertex/pm/util/DatabaseConnectionManager.java`
+  Builds the JDBC connection using `.env`.
+- `src/com/vertex/pm/util/EnvConfig.java`
+  Loads environment values from `.env`.
+- `src/com/vertex/pm/util/JsonUtil.java`
+  Handles simple request parsing and JSON responses.
+- `src/com/vertex/pm/util/IdGenerator.java`
+  Creates readable string IDs for newly created records.
+- `ui/index.html`
+  Main user interface layout.
+- `ui/app.js`
+  Handles fetch calls, edit modals, partial update payloads, per-screen filtering, and report rendering.
+- `ui/style.css`
+  Styles the interface.
+- `sql/schema.sql`
+  Creates the full schema and inserts realistic sample data.
+- `ui-create-samples.txt`
+  Contains ready-to-copy sample values for the create forms in the UI.
+- `test-exceptions.ps1`
+  Runs quick exception-handling checks against the live API.
+- `lib/mysql-connector-j-9.3.0.jar`
+  MySQL JDBC driver used during compile and run.
 
-1. Start MySQL
-2. Create the database objects and sample data from `sql/schema.sql`
-3. Set `.env` if you want local DB mode
-4. Compile and run the Java backend
-5. Open the UI in the browser
+## Database Design
 
-## Step 1: Create the database
+The main tables in `pm_db` are:
 
-Run:
+- `project`
+- `budget`
+- `task`
+- `resource`
+- `project_team_member`
+- `milestone`
+- `expense`
+- `risk`
+- `dependency`
+
+Important columns used by the application include:
+
+- `project.manager_name`
+- `project.objectives`
+- `project.progress_pct`
+- `budget.planned_amount`
+- `budget.actual_cost`
+- `budget.variance`
+- `task.task_name`
+- `task.due_date`
+- `task.assigned_to`
+- `resource.availability`
+- `milestone.completion_status`
+- `expense.expense_date`
+- `risk.mitigation_plan`
+- `project_team_member.member_name`
+- `dependency.depends_on_task_id`
+
+## Exception Handling
+
+The system uses structured exception types so the UI gets meaningful error responses instead of silent failures. Important handled cases include:
+
+- `PROJECT_NOT_FOUND`
+- `DUPLICATE_PROJECT_NAME`
+- `INVALID_PROJECT_DATES`
+- `PROJECT_UPDATE_FAILED`
+- `TASK_NOT_FOUND`
+- `INVALID_TASK_DATES`
+- `TASK_ALREADY_COMPLETED`
+- `TASK_STATUS_INVALID`
+- `RESOURCE_NOT_FOUND`
+- `RESOURCE_NOT_AVAILABLE`
+- `MILESTONE_NOT_FOUND`
+- `BUDGET_NOT_FOUND`
+- `EXPENSE_NOT_FOUND`
+- `RISK_NOT_FOUND`
+- `REPORT_GENERATION_FAILED`
+- `INVALID_REPORT_DATE_RANGE`
+- `DATABASE_ERROR`
+
+## UI Behavior
+
+- Clicking `Edit` opens a modal first.
+- Only changed fields are sent in `PATCH` requests.
+- `Delete` asks for confirmation and then removes the selected record immediately.
+- The `Projects` screen has its own project dropdown filter.
+- The `Tasks`, `Resources`, `Milestones`, and `Expenses` screens each have their own project filter for linked data.
+- Task and project status updates move cleanly through `PLANNED`, `IN_PROGRESS`, and `COMPLETED`.
+- Project progress is derived from completed tasks and completed milestones instead of being guessed manually.
+- Project status becomes `COMPLETED` only when the project reaches `100%` and all tracked work items are complete.
+- Task tables and reports show consistent `yyyy-MM-dd` dates.
+- Reports are generated per project and include summary metrics plus detailed task rows.
+
+## How To Run
+
+1. Create the database.
 
 ```powershell
 mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS pm_db;"
 ```
 
-## Step 2: Import the schema and sample data
-
-Run:
+2. Import the schema and seeded data.
 
 ```powershell
 Get-Content .\sql\schema.sql | mysql -u root -p pm_db
 ```
 
-This file now includes:
-
-- table creation
-- foreign keys
-- sample insert data
-
-## Step 3: Configure `.env`
-
-Example:
+3. Confirm `.env` contains the local database settings.
 
 ```env
-DATA_SOURCE=auto
 DB_HOST=localhost
 DB_PORT=3306
 DB_NAME=pm_db
 DB_USER=root
-DB_PASSWORD=your_password
-```
-
-Use:
-
-- `local` for MySQL only
-- `cloud` for API fallback data only
-- `auto` to try MySQL first and fall back to API
-
-You can also set the server port:
-
-```env
+DB_PASSWORD=your_DB_password
 PM_PORT=8080
 ```
 
-## Step 4: Compile and run backend
-
-Open PowerShell in `vertex-pm-system` and run:
+4. Compile the project.
 
 ```powershell
-javac -d out (Get-ChildItem -Recurse -Filter *.java | ForEach-Object FullName)
-java -cp "out;lib/*" com.vertex.pm.Main
+javac -cp ".;lib/mysql-connector-j-9.3.0.jar" -d out (Get-ChildItem -Path src -Recurse -Filter *.java | ForEach-Object FullName)
 ```
 
-Wait until the console prints:
+5. Run the server.
 
-```text
-Vertex PM server started at http://localhost:8080
+```powershell
+java -cp ".;out;lib/mysql-connector-j-9.3.0.jar" com.vertex.pm.Main
 ```
 
-## Step 5: Open UI
+6. Open the UI.
 
 ```text
 http://localhost:8080
 ```
 
-The backend must be running before the UI will load data.
-
-## If port 8080 is already in use
-
-Find the process using the port:
-
-```powershell
-Get-NetTCPConnection -LocalPort 8080 | Select-Object LocalAddress,LocalPort,State,OwningProcess
-```
-
-Stop that process if you want to reuse `8080`:
-
-```powershell
-Stop-Process -Id <PID> -Force
-```
-
-Or set another port in `.env`:
-
-```env
-PM_PORT=8081
-```
-
-Then run the backend and open:
+7. If you want ready-made values for the create forms, open:
 
 ```text
-http://localhost:8081
+ui-create-samples.txt
 ```
 
-## Optional MySQL configuration
+## Main API Endpoints
 
-The app checks environment variables and optional `.env` values:
+- `GET /api/projects`
+- `GET /api/projects/{id}`
+- `POST /api/projects`
+- `PATCH /api/projects/{id}`
+- `PATCH /api/projects/{id}/progress`
+- `DELETE /api/projects/{id}`
+- `GET /api/projects/{id}/report`
+- `GET /api/dashboard`
+- `GET /api/monitoring`
+- `GET /api/tasks`
+- `POST /api/tasks`
+- `PATCH /api/tasks/{id}`
+- `DELETE /api/tasks/{id}`
+- `GET /api/resources`
+- `POST /api/resources`
+- `PATCH /api/resources/{id}`
+- `DELETE /api/resources/{id}`
+- `GET /api/milestones`
+- `POST /api/milestones`
+- `PATCH /api/milestones/{id}`
+- `DELETE /api/milestones/{id}`
+- `GET /api/expenses`
+- `POST /api/expenses`
+- `PATCH /api/expenses/{id}`
+- `DELETE /api/expenses/{id}`
 
-- `PM_DB_URL`
-- `PM_DB_USER`
-- `PM_DB_PASSWORD`
-- `DATA_SOURCE`
-- `DB_HOST`
-- `DB_PORT`
-- `DB_NAME`
-- `DB_USER`
-- `DB_PASSWORD`
+## Quick Exception Testing
 
-If they are not set, it defaults to:
+Start the server first, then run:
 
-```text
-jdbc:mysql://localhost:3306/vertex_pm
-root
-root
+```powershell
+.\test-exceptions.ps1
 ```
 
-If MySQL is unavailable, the application automatically switches to the fallback API repository.
-If `DATA_SOURCE=local` but MySQL is not reachable, the app now falls back to cloud/API data so one available source can still serve the UI.
+That script checks common exception paths such as:
 
-The MySQL JDBC driver is included in:
-
-- [mysql-connector-j-9.6.0.jar](/c:/Users/Chandu/OneDrive/Desktop/projectManagement/vertex-pm-system/lib/mysql-connector-j-9.6.0.jar)
-
-## Data source selection
-
-Use `DATA_SOURCE` in `.env` or your environment:
-
-- `local` -> use MySQL only
-- `cloud` -> use API only
-- `auto` -> try local first, then fallback to API
-
-## SQL schema
-
-The SQL schema from the blueprint is included in:
-
-- [schema.sql](/c:/Users/Chandu/OneDrive/Desktop/projectManagement/vertex-pm-system/sql/schema.sql)
+- missing project
+- missing task
+- invalid task dates
+- unavailable resource
+- already completed task
+- missing resource
+- missing milestone
+- missing expense
+- invalid project dates
+- missing project report

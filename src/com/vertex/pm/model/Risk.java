@@ -1,37 +1,26 @@
 package com.vertex.pm.model;
 
-/**
- * Represents a project risk entry.
- */
 public class Risk {
-    private final int id;
-    private final int projectId;
+    private final String id;
+    private final String projectId;
     private final String description;
     private final RiskSeverity severity;
+    private final String status;
+    private final String mitigationPlan;
 
-    /**
-     * Creates a risk.
-     */
-    public Risk(int id, int projectId, String description, RiskSeverity severity) {
+    public Risk(String id, String projectId, String description, RiskSeverity severity, String status, String mitigationPlan) {
         this.id = id;
         this.projectId = projectId;
         this.description = description;
         this.severity = severity;
+        this.status = status;
+        this.mitigationPlan = mitigationPlan;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public int getProjectId() {
-        return projectId;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public RiskSeverity getSeverity() {
-        return severity;
-    }
+    public String getId() { return id; }
+    public String getProjectId() { return projectId; }
+    public String getDescription() { return description; }
+    public RiskSeverity getSeverity() { return severity; }
+    public String getStatus() { return status; }
+    public String getMitigationPlan() { return mitigationPlan; }
 }
