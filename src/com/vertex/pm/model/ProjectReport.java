@@ -18,4 +18,5 @@ public record ProjectReport(
         List<Map<String, Object>> milestoneStatus,
         List<Map<String, Object>> taskDetails
 ) {
+    // Record used by the Reports screen to display project summary values and detailed task data.
 }

@@ -14,6 +14,10 @@ import java.net.InetSocketAddress;
 import java.nio.file.Path;
 
 public class Main {
+    /**
+     * Boots the HTTP server, wires the service/repository layers, and exposes
+     * the UI plus API endpoints used by the frontend.
+     */
     public static void main(String[] args) throws IOException {
         int port = Integer.parseInt(EnvConfig.get("PM_PORT", "8080"));
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);

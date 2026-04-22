@@ -17,6 +17,7 @@ public final class JsonUtil {
     private JsonUtil() {
     }
 
+    /** Sends a JSON response with the supplied status code and body. */
     public static void sendJson(HttpExchange exchange, int statusCode, String body) throws IOException {
         byte[] payload = body.getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
@@ -25,12 +26,14 @@ public final class JsonUtil {
         exchange.close();
     }
 
+    /** Reads and parses a flat JSON request body into a map of values. */
     public static Map<String, Object> parseBody(HttpExchange exchange) throws IOException {
         try (InputStream inputStream = exchange.getRequestBody()) {
             return parseFlatJson(new String(inputStream.readAllBytes(), StandardCharsets.UTF_8));
         }
     }
 
+    /** Builds the standard error payload returned for business exceptions. */
     public static String errorJson(ProjectManagementException exception) {
         return toJson(Map.of(
                 "error", exception.getMessage(),
@@ -38,6 +41,7 @@ public final class JsonUtil {
         ));
     }
 
+    /** Serializes common Java objects, maps, lists, and model classes into JSON text. */
     public static String toJson(Object value) {
         if (value == null) {
             return "null";
@@ -98,10 +102,12 @@ public final class JsonUtil {
         return "\"" + escape(String.valueOf(value)) + "\"";
     }
 
+    /** Escapes string content so it is safe to include inside JSON output. */
     public static String escape(String value) {
         return value == null ? "" : value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n");
     }
 
+    /** Parses a simple top-level JSON object into key/value pairs. */
     private static Map<String, Object> parseFlatJson(String json) {
         Map<String, Object> values = new LinkedHashMap<>();
         String cleaned = json == null ? "" : json.trim();
@@ -126,6 +132,7 @@ public final class JsonUtil {
         return values;
     }
 
+    /** Splits a JSON object string by top-level commas while preserving quoted values. */
     private static List<String> splitTopLevel(String value) {
         List<String> parts = new ArrayList<>();
         StringBuilder current = new StringBuilder();
@@ -148,6 +155,7 @@ public final class JsonUtil {
         return parts;
     }
 
+    /** Converts raw JSON tokens into Java values such as String, Boolean, Integer, or Double. */
     private static Object parseValue(String rawValue) {
         if (rawValue == null || rawValue.equals("null")) {
             return null;
@@ -168,6 +176,7 @@ public final class JsonUtil {
         }
     }
 
+    /** Removes surrounding quotes from a JSON token when they are present. */
     private static String stripQuotes(String value) {
         String cleaned = value;
         if (cleaned.startsWith("\"")) {

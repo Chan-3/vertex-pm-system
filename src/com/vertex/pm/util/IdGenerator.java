@@ -8,6 +8,7 @@ public final class IdGenerator {
     private IdGenerator() {
     }
 
+    /** Creates a readable random identifier such as PRJ-ABC123 for new rows. */
     public static String next(String prefix) {
         String alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
         StringBuilder builder = new StringBuilder(prefix).append("-");

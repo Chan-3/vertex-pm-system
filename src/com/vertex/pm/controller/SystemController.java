@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.util.Map;
 
 public class SystemController implements HttpHandler {
+    // GRASP Controller: this class routes dashboard, task, resource, milestone, and expense requests.
     private final ProjectService projectService;
 
     public SystemController(ProjectService projectService) {
@@ -27,6 +28,10 @@ public class SystemController implements HttpHandler {
     }
 
     @Override
+    /**
+     * Handles non-project routes such as dashboard, monitoring, tasks, resources,
+     * milestones, and expenses.
+     */
     public void handle(HttpExchange exchange) throws IOException {
         try {
             String path = exchange.getRequestURI().getPath();
@@ -160,7 +165,10 @@ public class SystemController implements HttpHandler {
         }
     }
 
+    /** Normalizes request values into strings before model creation. */
     private String stringValue(Object value) { return value == null ? "" : String.valueOf(value); }
+    /** Normalizes numeric request values used for money-related fields. */
     private double doubleValue(Object value) { return value instanceof Number n ? n.doubleValue() : Double.parseDouble(String.valueOf(value)); }
+    /** Parses request values into booleans for flags like availability and completion status. */
     private boolean booleanValue(Object value) { return value instanceof Boolean b ? b : Boolean.parseBoolean(String.valueOf(value)); }
 }

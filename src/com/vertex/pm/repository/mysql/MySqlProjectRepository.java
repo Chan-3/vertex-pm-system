@@ -41,6 +41,7 @@ public class MySqlProjectRepository implements ProjectRepository {
     }
 
     @Override
+    /** Loads all projects and eagerly maps their related child data for the UI. */
     public List<Project> getAllProjects() throws ProjectManagementException {
         String sql = """
                 SELECT id, name, description, manager_name, start_date, end_date, status, objectives, progress_pct
@@ -61,6 +62,7 @@ public class MySqlProjectRepository implements ProjectRepository {
     }
 
     @Override
+    /** Loads one project with its related tasks, resources, milestones, and budget. */
     public Optional<Project> getProjectById(String projectId) throws ProjectManagementException {
         String sql = """
                 SELECT id, name, description, manager_name, start_date, end_date, status, objectives, progress_pct
@@ -82,6 +84,7 @@ public class MySqlProjectRepository implements ProjectRepository {
     }
 
     @Override
+    /** Inserts a project row and its matching budget row inside one transaction. */
     public Project createProject(Project project) throws ProjectManagementException {
         String projectSql = """
                 INSERT INTO project (
@@ -130,6 +133,7 @@ public class MySqlProjectRepository implements ProjectRepository {
     }
 
     @Override
+    /** Applies a partial project patch and updates matching budget fields when present. */
     public Project patchProject(String projectId, Map<String, Object> changes) throws ProjectManagementException {
         Map<String, String> projectFields = Map.of(
                 "name", "name",
@@ -153,6 +157,7 @@ public class MySqlProjectRepository implements ProjectRepository {
     }
 
     @Override
+    /** Applies progress-only changes used after service-layer recalculation. */
     public Project patchProjectProgress(String projectId, Map<String, Object> changes) throws ProjectManagementException {
         Map<String, String> allowedFields = Map.of(
                 "progressPercent", "progress_pct",
@@ -164,16 +169,19 @@ public class MySqlProjectRepository implements ProjectRepository {
     }
 
     @Override
+    /** Deletes a project by id. */
     public void deleteProject(String projectId) throws ProjectManagementException {
         deleteById("project", "id", projectId, ExceptionType.PROJECT_NOT_FOUND, "Project");
     }
 
     @Override
+    /** Returns every task row across the system. */
     public List<Task> getAllTasks() throws ProjectManagementException {
         return queryTasks(null);
     }
 
     @Override
+    /** Inserts a new task row. */
     public Task createTask(Task task) throws ProjectManagementException {
         String sql = """
                 INSERT INTO task (
@@ -200,6 +208,7 @@ public class MySqlProjectRepository implements ProjectRepository {
     }
 
     @Override
+    /** Updates only the task fields included in the PATCH payload. */
     public Task patchTask(String taskId, Map<String, Object> changes) throws ProjectManagementException {
         Map<String, String> allowedFields = Map.of(
                 "name", "task_name",
@@ -215,11 +224,13 @@ public class MySqlProjectRepository implements ProjectRepository {
     }
 
     @Override
+    /** Deletes a task row by id. */
     public void deleteTask(String taskId) throws ProjectManagementException {
         deleteById("task", "id", taskId, ExceptionType.TASK_NOT_FOUND, "Task");
     }
 
     @Override
+    /** Returns all resource rows. */
     public List<Resource> getAllResources() throws ProjectManagementException {
         String sql = """
                 SELECT id, project_id, name, role, availability, skill_set
@@ -240,6 +251,7 @@ public class MySqlProjectRepository implements ProjectRepository {
     }
 
     @Override
+    /** Inserts a new resource row. */
     public Resource createResource(Resource resource) throws ProjectManagementException {
         String sql = """
                 INSERT INTO resource (id, project_id, name, role, availability, skill_set, updated_at)
@@ -261,6 +273,7 @@ public class MySqlProjectRepository implements ProjectRepository {
     }
 
     @Override
+    /** Updates only the resource fields included in the PATCH payload. */
     public Resource patchResource(String resourceId, Map<String, Object> changes) throws ProjectManagementException {
         Map<String, String> allowedFields = Map.of(
                 "name", "name",
@@ -273,11 +286,13 @@ public class MySqlProjectRepository implements ProjectRepository {
     }
 
     @Override
+    /** Deletes a resource row by id. */
     public void deleteResource(String resourceId) throws ProjectManagementException {
         deleteById("resource", "id", resourceId, ExceptionType.RESOURCE_NOT_FOUND, "Resource");
     }
 
     @Override
+    /** Returns all milestone rows. */
     public List<Milestone> getAllMilestones() throws ProjectManagementException {
         String sql = """
                 SELECT id, project_id, name, target_date, completion_status, description
@@ -298,6 +313,7 @@ public class MySqlProjectRepository implements ProjectRepository {
     }
 
     @Override
+    /** Inserts a new milestone row. */
     public Milestone createMilestone(Milestone milestone) throws ProjectManagementException {
         String sql = """
                 INSERT INTO milestone (id, project_id, name, target_date, completion_status, description, updated_at)
@@ -319,6 +335,7 @@ public class MySqlProjectRepository implements ProjectRepository {
     }
 
     @Override
+    /** Updates only the milestone fields included in the PATCH payload. */
     public Milestone patchMilestone(String milestoneId, Map<String, Object> changes) throws ProjectManagementException {
         Map<String, String> allowedFields = Map.of(
                 "name", "name",
@@ -331,11 +348,13 @@ public class MySqlProjectRepository implements ProjectRepository {
     }
 
     @Override
+    /** Deletes a milestone row by id. */
     public void deleteMilestone(String milestoneId) throws ProjectManagementException {
         deleteById("milestone", "id", milestoneId, ExceptionType.MILESTONE_NOT_FOUND, "Milestone");
     }
 
     @Override
+    /** Returns all expense rows. */
     public List<Expense> getAllExpenses() throws ProjectManagementException {
         String sql = """
                 SELECT id, project_id, expense_date, description, category, amount
@@ -356,6 +375,7 @@ public class MySqlProjectRepository implements ProjectRepository {
     }
 
     @Override
+    /** Inserts a new expense row and refreshes budget totals. */
     public Expense createExpense(Expense expense) throws ProjectManagementException {
         String sql = """
                 INSERT INTO expense (id, project_id, expense_date, description, category, amount, updated_at)
@@ -378,6 +398,7 @@ public class MySqlProjectRepository implements ProjectRepository {
     }
 
     @Override
+    /** Updates only the expense fields included in the PATCH payload and refreshes totals. */
     public Expense patchExpense(String expenseId, Map<String, Object> changes) throws ProjectManagementException {
         Expense existing = getExpenseById(expenseId);
         Map<String, String> allowedFields = Map.of(
@@ -392,6 +413,7 @@ public class MySqlProjectRepository implements ProjectRepository {
     }
 
     @Override
+    /** Deletes an expense row and refreshes the related budget totals. */
     public void deleteExpense(String expenseId) throws ProjectManagementException {
         Expense existing = getExpenseById(expenseId);
         deleteById("expense", "id", expenseId, ExceptionType.EXPENSE_NOT_FOUND, "Expense");
@@ -399,6 +421,7 @@ public class MySqlProjectRepository implements ProjectRepository {
     }
 
     @Override
+    /** Builds the report object returned to the Reports screen. */
     public ProjectReport getProjectReport(String projectId) throws ProjectManagementException {
         Project project = getProjectById(projectId).orElseThrow(() -> new ProjectManagementException(
                 ExceptionType.PROJECT_NOT_FOUND, "Project not found: " + projectId, 404));
@@ -446,6 +469,7 @@ public class MySqlProjectRepository implements ProjectRepository {
         );
     }
 
+    /** Maps one project row and attaches all linked child collections. */
     private Project mapProject(Connection connection, ResultSet resultSet) throws SQLException {
         String projectId = resultSet.getString("id");
         Project project = new Project(
@@ -470,6 +494,7 @@ public class MySqlProjectRepository implements ProjectRepository {
         return project;
     }
 
+    /** Loads budget totals for a single project. */
     private Budget queryBudget(Connection connection, String projectId) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(
                 "SELECT planned_amount, actual_cost FROM budget WHERE project_id = ?")) {
@@ -483,6 +508,7 @@ public class MySqlProjectRepository implements ProjectRepository {
         return new Budget(projectId, 0, 0);
     }
 
+    /** Convenience wrapper that opens a connection before task querying. */
     private List<Task> queryTasks(String projectId) throws ProjectManagementException {
         try (Connection connection = connectionManager.getConnection()) {
             return queryTasks(connection, projectId);
@@ -491,6 +517,7 @@ public class MySqlProjectRepository implements ProjectRepository {
         }
     }
 
+    /** Loads tasks either for one project or for all projects when the id is null. */
     private List<Task> queryTasks(Connection connection, String projectId) throws SQLException {
         String sql = """
                 SELECT id, project_id, task_name, description, start_date, due_date, status, priority, assigned_to
@@ -512,6 +539,7 @@ public class MySqlProjectRepository implements ProjectRepository {
         }
     }
 
+    /** Loads resources linked to one project. */
     private List<Resource> queryResources(Connection connection, String projectId) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(
                 "SELECT id, project_id, name, role, availability, skill_set FROM resource WHERE project_id = ? ORDER BY name")) {
@@ -526,6 +554,7 @@ public class MySqlProjectRepository implements ProjectRepository {
         }
     }
 
+    /** Loads team member rows for one project. */
     private List<TeamMember> queryTeamMembers(Connection connection, String projectId) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(
                 "SELECT member_id, member_name, member_role, email FROM project_team_member WHERE project_id = ? ORDER BY member_name")) {
@@ -545,6 +574,7 @@ public class MySqlProjectRepository implements ProjectRepository {
         }
     }
 
+    /** Loads milestones linked to one project. */
     private List<Milestone> queryMilestones(Connection connection, String projectId) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(
                 "SELECT id, project_id, name, target_date, completion_status, description FROM milestone WHERE project_id = ? ORDER BY target_date")) {
@@ -559,6 +589,7 @@ public class MySqlProjectRepository implements ProjectRepository {
         }
     }
 
+    /** Loads expenses linked to one project. */
     private List<Expense> queryExpenses(Connection connection, String projectId) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(
                 "SELECT id, project_id, expense_date, description, category, amount FROM expense WHERE project_id = ? ORDER BY expense_date")) {
@@ -573,6 +604,7 @@ public class MySqlProjectRepository implements ProjectRepository {
         }
     }
 
+    /** Loads risks linked to one project. */
     private List<Risk> queryRisks(Connection connection, String projectId) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(
                 "SELECT id, project_id, description, severity, status, mitigation_plan FROM risk WHERE project_id = ? ORDER BY severity DESC")) {
@@ -594,6 +626,7 @@ public class MySqlProjectRepository implements ProjectRepository {
         }
     }
 
+    /** Loads task dependency rows for one project. */
     private List<Dependency> queryDependencies(Connection connection, String projectId) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(
                 "SELECT task_id, depends_on_task_id FROM dependency WHERE project_id = ? ORDER BY task_id")) {
@@ -611,6 +644,7 @@ public class MySqlProjectRepository implements ProjectRepository {
         }
     }
 
+    /** Returns one task row or throws TASK_NOT_FOUND. */
     private Task getTaskById(String taskId) throws ProjectManagementException {
         try (Connection connection = connectionManager.getConnection();
              PreparedStatement statement = connection.prepareStatement(
@@ -627,6 +661,7 @@ public class MySqlProjectRepository implements ProjectRepository {
         throw new ProjectManagementException(ExceptionType.TASK_NOT_FOUND, "Task not found: " + taskId, 404);
     }
 
+    /** Returns one resource row or throws RESOURCE_NOT_FOUND. */
     private Resource getResourceById(String resourceId) throws ProjectManagementException {
         try (Connection connection = connectionManager.getConnection();
              PreparedStatement statement = connection.prepareStatement(
@@ -643,6 +678,7 @@ public class MySqlProjectRepository implements ProjectRepository {
         throw new ProjectManagementException(ExceptionType.RESOURCE_NOT_FOUND, "Resource not found: " + resourceId, 404);
     }
 
+    /** Returns one milestone row or throws MILESTONE_NOT_FOUND. */
     private Milestone getMilestoneById(String milestoneId) throws ProjectManagementException {
         try (Connection connection = connectionManager.getConnection();
              PreparedStatement statement = connection.prepareStatement(
@@ -659,6 +695,7 @@ public class MySqlProjectRepository implements ProjectRepository {
         throw new ProjectManagementException(ExceptionType.MILESTONE_NOT_FOUND, "Milestone not found: " + milestoneId, 404);
     }
 
+    /** Returns one expense row or throws EXPENSE_NOT_FOUND. */
     private Expense getExpenseById(String expenseId) throws ProjectManagementException {
         try (Connection connection = connectionManager.getConnection();
              PreparedStatement statement = connection.prepareStatement(
@@ -675,6 +712,7 @@ public class MySqlProjectRepository implements ProjectRepository {
         throw new ProjectManagementException(ExceptionType.EXPENSE_NOT_FOUND, "Expense not found: " + expenseId, 404);
     }
 
+    /** Maps a result-set row into a Task domain object. */
     private Task mapTask(ResultSet resultSet) throws SQLException {
         return new Task(
                 resultSet.getString("id"),
@@ -689,6 +727,7 @@ public class MySqlProjectRepository implements ProjectRepository {
         );
     }
 
+    /** Maps a result-set row into a Resource domain object. */
     private Resource mapResource(ResultSet resultSet) throws SQLException {
         return new Resource(
                 resultSet.getString("id"),
@@ -700,6 +739,7 @@ public class MySqlProjectRepository implements ProjectRepository {
         );
     }
 
+    /** Maps a result-set row into a Milestone domain object. */
     private Milestone mapMilestone(ResultSet resultSet) throws SQLException {
         return new Milestone(
                 resultSet.getString("id"),
@@ -711,6 +751,7 @@ public class MySqlProjectRepository implements ProjectRepository {
         );
     }
 
+    /** Maps a result-set row into an Expense domain object. */
     private Expense mapExpense(ResultSet resultSet) throws SQLException {
         return new Expense(
                 resultSet.getString("id"),
@@ -754,6 +795,7 @@ public class MySqlProjectRepository implements ProjectRepository {
         }
     }
 
+    /** Converts generic patch values into SQL-ready parameter types. */
     private void setValue(PreparedStatement statement, int index, String column, Object value) throws SQLException {
         if (column.endsWith("_date")) {
             statement.setDate(index, Date.valueOf(LocalDate.parse(String.valueOf(value))));
@@ -774,6 +816,7 @@ public class MySqlProjectRepository implements ProjectRepository {
         statement.setString(index, String.valueOf(value));
     }
 
+    /** Deletes one row and translates missing rows into domain-specific not-found errors. */
     private void deleteById(String tableName, String idColumn, String idValue, ExceptionType missingType, String label)
             throws ProjectManagementException {
         try (Connection connection = connectionManager.getConnection();
@@ -788,6 +831,7 @@ public class MySqlProjectRepository implements ProjectRepository {
         }
     }
 
+    /** Recomputes budget totals after expense changes using a fresh connection. */
     private void refreshBudgetVariance(String projectId) throws ProjectManagementException {
         try (Connection connection = connectionManager.getConnection()) {
             refreshBudgetActualCost(connection, projectId);
@@ -796,6 +840,7 @@ public class MySqlProjectRepository implements ProjectRepository {
         }
     }
 
+    /** Recalculates actual cost and variance fields from the current expense rows. */
     private void refreshBudgetActualCost(Connection connection, String projectId) throws SQLException {
         double totalExpenses = 0;
         try (PreparedStatement totalStatement = connection.prepareStatement(

@@ -26,6 +26,9 @@ public final class AppLogger {
         LOGGER.log(Level.INFO, message);
     }
 
+    /**
+     * Logs unexpected failures that should be treated as application or infrastructure errors.
+     */
     public static void error(String message, Throwable throwable) {
         LOGGER.log(Level.SEVERE, message, throwable);
     }

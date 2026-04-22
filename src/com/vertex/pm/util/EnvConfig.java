@@ -23,6 +23,7 @@ public final class EnvConfig {
         return VALUES.getOrDefault(key, fallback);
     }
 
+    /** Loads values from system environment first and then fills missing keys from .env. */
     private static Map<String, String> loadValues() {
         Map<String, String> values = new HashMap<>(System.getenv());
         Path envFile = Path.of(".env");

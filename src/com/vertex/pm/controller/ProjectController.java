@@ -26,6 +26,9 @@ public class ProjectController implements HttpHandler {
     }
 
     @Override
+    /**
+     * Handles project-level routes such as list, create, patch, delete, and report access.
+     */
     public void handle(HttpExchange exchange) throws IOException {
         try {
             String path = exchange.getRequestURI().getPath();
@@ -90,7 +93,10 @@ public class ProjectController implements HttpHandler {
         }
     }
 
+    /** Converts request values into safe strings for model construction. */
     private String stringValue(Object value) { return value == null ? "" : String.valueOf(value); }
+    /** Converts request values into integer form for progress fields. */
     private int intValue(Object value) { return value instanceof Number n ? n.intValue() : Integer.parseInt(String.valueOf(value)); }
+    /** Converts request values into doubles for budget fields. */
     private double doubleValue(Object value) { return value instanceof Number n ? n.doubleValue() : Double.parseDouble(String.valueOf(value)); }
 }
